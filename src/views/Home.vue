@@ -33,7 +33,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['setTareas', 'cargarLocalStorage']),
+    ...mapActions(['setTareas']),
     procesarFormulario(){
       console.log(this.tarea)
       if(this.tarea.nombre.trim() === ""){
@@ -59,9 +59,6 @@ export default {
       }
     }
   },
-  created(){
-    this.cargarLocalStorage()
-  }
 
 }
 </script>

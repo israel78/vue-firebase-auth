@@ -10,15 +10,11 @@ export default createStore({
       categorias: [],
       estado: '',
       numero: 0
-    },
-    user: null
+    }
   },
   mutations: {
-    setUser(state, payload) {
-      state.user = payload
-    },
-    cargar(state, payload) {
-      state.tareas = payload
+    cargar(state,payload){
+      this.state.tareas = payload
     },
     set(state, payload) {
       state.tareas.push(payload)
@@ -39,122 +35,87 @@ export default createStore({
     }
   },
   actions: {
-    cerrarSesion({ commit }) {
-      commit('setUser', null)
-      router.push('/ingreso')
-      localStorage.removeItem('usuario')
-    },
-    async ingresoUsuario({ commit }, usuario) {
-      try {
-        const res = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBfdb-nsyLRvYhfxtlBJEYkzvbvMZJotJ8', {
-          method: 'POST',
-          body: JSON.stringify({
-            email: usuario.email,
-            password: usuario.password,
-            returnSecureToken: true
-          })
+
+    async cargarDatosFirebase({commit} ){
+      try{
+        const res = await fetch(`https://udemy-api-31a48-default-rtdb.europe-west1.firebasedatabase.app/tareas.json`,{
+          method: 'GET',
+          headers:{
+            'Content-Type':'application/json'
+          },
         })
-        const userDB = await res.json()
-        console.log('userDB', userDB)
-        if (userDB.error) {
-          return console.log(userDB.error)
-        }
-        commit('setUser', userDB)
-        router.push('/')
-        localStorage.setItem('usuario', JSON.stringify(userDB))
-      } catch (error) {
-        console.log(error)
-      }
-    },
-    async registrarUsuario({ commit }, usuario) {
-      try {
-        const res = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyBfdb-nsyLRvYhfxtlBJEYkzvbvMZJotJ8', {
-          method: 'POST',
-          body: JSON.stringify({
-            email: usuario.email,
-            password: usuario.password,
-            returnSecureToken: true
-          })
-        })
-        const userDB = await res.json()
-        console.log(userDB)
-        if (userDB.error) {
-          console.log(userDB.error)
-          return
-        }
-        commit('setUser', userDB)
-        router.push('/')
-        localStorage.setItem('usuario', JSON.stringify(userDB))
-      } catch (error) {
-        console.log(error)
-      }
-    },
-    async cargarLocalStorage({ commit, state }) {
-      if (localStorage.getItem('usuario')) {
-        commit('setUser', JSON.parse(localStorage.getItem('usuario')))
-      } else {
-        return commit('setUser', null)
-      }
-      try {
-        const res = await fetch(`https://udemy-api-eea7f.firebaseio.com/tareas/${state.user.localId}.json?auth=${state.user.idToken}`)
-        const dataDB = await res.json()
+        const dataDB = await res.json();
+        console.log(dataDB)
         const arrayTareas = []
-        for (let id in dataDB){
+        for (let id in dataDB) {
           arrayTareas.push(dataDB[id])
         }
         commit('cargar', arrayTareas)
-
-      } catch (error) {
-        console.log(error)
+      }catch (e) {
+        console.log(e);
       }
+
+
     },
-    async setTareas({ commit, state }, tarea) {
-      try {
-        const res = await fetch(`https://udemy-api-eea7f.firebaseio.com/tareas/${state.user.localId}/${tarea.id}.json?auth=${state.user.idToken}`, {
+    //Se hace necesario colocar async para poder utilizarla en la llamada al api de Firebase e implementar
+    //El await que hace que la llamada sea sincrona
+    async setTareas({ commit }, tarea) {
+      try{
+        //Si en Firebase le pasamos un ID como identificador en párametro (si no lo genera solo) y POST como tipo de llamada.
+        const res = await fetch(`https://udemy-api-31a48-default-rtdb.europe-west1.firebasedatabase.app/tareas/${tarea.id}.json`,{
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
+          headers:{
+            'Content-Type':'application/json'
           },
           body: JSON.stringify(tarea)
         })
-
-        const dataDB = await res.json()
+        const dataDB = await res.json();
         console.log(dataDB)
 
-      } catch (error) {
-        console.log(error)
+      }catch (e) {
+        console.log(e)
       }
       commit('set', tarea)
     },
-    async deleteTareas({ commit, state }, id) {
-      try {
-        await fetch(`https://udemy-api-eea7f.firebaseio.com/tareas/${state.user.localId}/${id}.json?auth=${state.user.idToken}`, {
+    async deleteTareas({ commit }, id) {
+      try{
+        //Si en Firebase le pasamos un ID como identificador en párametro (si no lo genera solo) y POST como tipo de llamada.
+        const res = await fetch(`https://udemy-api-31a48-default-rtdb.europe-west1.firebasedatabase.app/tareas/${id}.json`,{
           method: 'DELETE',
+          headers:{
+            'Content-Type':'application/json'
+          },
         })
-        commit('eliminar', id)
-      } catch (error) {
-        console.log(error)
+        const dataDB = await res.json();
+        console.log(dataDB)
+
+      }catch (e) {
+        console.log(e)
       }
+      commit('eliminar', id)
     },
     setTarea({ commit }, id) {
       commit('tarea', id)
     },
-    async updateTarea({ commit, state }, tarea) {
-      try {
-        const res = await fetch(`https://udemy-api-eea7f.firebaseio.com/tareas/${state.user.localId}/${tarea.id}.json?auth=${state.user.idToken}`, {
-          method: 'PATCH',
-          body: JSON.stringify(tarea)
-        })
-        const dataDB = await res.json()
-        commit('update', dataDB)
-      } catch (error) {
-        console.log(error)
-      }
-    }
-  },
-  getters: {
-    usuarioAutenticado(state) {
-      return !!state.user
+   async updateTarea({ commit }, tarea) {
+     try{
+       //Si en Firebase le pasamos un ID como identificador en párametro (si no lo genera solo) y POST como tipo de llamada.
+       //Para editar, se usa path (ver documentación de firebase)
+       const res = await fetch(`https://udemy-api-31a48-default-rtdb.europe-west1.firebasedatabase.app/tareas/${tarea.id}.json`,{
+         method: 'PATCH',
+         mode:'cors',
+         headers:{
+           'Content-Type':'application/json'
+         },
+         body: JSON.stringify(tarea)
+       })
+       const dataDB = await res.json();
+       console.log(dataDB)
+
+     }catch (e) {
+       console.log(e)
+     }
+      commit('update', tarea)
     }
   },
   modules: {

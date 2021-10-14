@@ -13,10 +13,10 @@
       Navbar
     },
     methods:{
-      ...mapActions(['cargarLocalStorage'])
+      ...mapActions(['cargarDatosFirebase'])
     },
     created(){
-      this.cargarLocalStorage()
+      this.cargarDatosFirebase()
     }
   }
 </script>
