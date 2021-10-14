@@ -10,9 +10,16 @@ export default createStore({
       categorias: [],
       estado: '',
       numero: 0
-    }
+    },
+    user:null
   },
   mutations: {
+    loginUser(state,payload){
+      this.state.user = payload
+    },
+    setUser(state,payload){
+      this.state.user = payload
+    },
     cargar(state,payload){
       this.state.tareas = payload
     },
@@ -36,9 +43,62 @@ export default createStore({
   },
   actions: {
 
-    async cargarDatosFirebase({commit} ){
+    async loginUsuario({commit},user){
       try{
-        const res = await fetch(`https://udemy-api-31a48-default-rtdb.europe-west1.firebasedatabase.app/tareas.json`,{
+        const apiKey = 'AIzaSyBqkwFxGxqe4cP1W9Y8-sxJhzCjJ4yCvEs'
+        //Si en Firebase le pasamos un ID como identificador en párametro (si no lo genera solo) y POST como tipo de llamada.
+        const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,{
+          method: 'POST',
+          headers:{
+            'Content-Type':'application/json'
+          },
+          body: JSON.stringify({
+            email:user.email,
+            password:user.password,
+            returnSecureToken:true
+          })
+        })
+        const dataDB = await res.json();
+        console.log(dataDB)
+        if (dataDB.error){
+          console.log(dataDB.error)
+          return
+        }
+        commit('setUser',dataDB)
+        router.push("/")
+      }catch (e) {
+        console.log(e)
+      }
+    },
+   async registrarUsuario({commit},user){
+     try{
+       const apiKey = 'AIzaSyBqkwFxGxqe4cP1W9Y8-sxJhzCjJ4yCvEs'
+       //Si en Firebase le pasamos un ID como identificador en párametro (si no lo genera solo) y POST como tipo de llamada.
+       const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,{
+         method: 'POST',
+         headers:{
+           'Content-Type':'application/json'
+         },
+         body: JSON.stringify({
+           email:user.email,
+           password:user.password,
+           returnSecureToken:true
+         })
+       })
+       const dataDB = await res.json();
+       console.log(dataDB)
+       if (dataDB.error){
+         console.log(dataDB.error)
+         return
+       }
+       commit('setUser',user)
+     }catch (e) {
+       console.log(e)
+     }
+    },
+    async cargarDatosFirebase({commit,state}){
+      try{
+        const res = await fetch(`https://udemy-api-31a48-default-rtdb.europe-west1.firebasedatabase.app/tareas//${state.user.localId}.json?auth=${state.user.idToken}`,{
           method: 'GET',
           headers:{
             'Content-Type':'application/json'
@@ -59,10 +119,10 @@ export default createStore({
     },
     //Se hace necesario colocar async para poder utilizarla en la llamada al api de Firebase e implementar
     //El await que hace que la llamada sea sincrona
-    async setTareas({ commit }, tarea) {
+    async setTareas({ commit ,state}, tarea) {
       try{
         //Si en Firebase le pasamos un ID como identificador en párametro (si no lo genera solo) y POST como tipo de llamada.
-        const res = await fetch(`https://udemy-api-31a48-default-rtdb.europe-west1.firebasedatabase.app/tareas/${tarea.id}.json`,{
+        const res = await fetch(`https://udemy-api-31a48-default-rtdb.europe-west1.firebasedatabase.app/tareas/${state.user.localId}/${tarea.id}.json?auth=${state.user.idToken}`,{
           method: 'PUT',
           headers:{
             'Content-Type':'application/json'
@@ -77,10 +137,10 @@ export default createStore({
       }
       commit('set', tarea)
     },
-    async deleteTareas({ commit }, id) {
+    async deleteTareas({ commit ,state}, id) {
       try{
         //Si en Firebase le pasamos un ID como identificador en párametro (si no lo genera solo) y POST como tipo de llamada.
-        const res = await fetch(`https://udemy-api-31a48-default-rtdb.europe-west1.firebasedatabase.app/tareas/${id}.json`,{
+        const res = await fetch(`https://udemy-api-31a48-default-rtdb.europe-west1.firebasedatabase.app/tareas/${state.user.localId}/${id}.json?auth=${state.user.idToken}`,{
           method: 'DELETE',
           headers:{
             'Content-Type':'application/json'
@@ -97,11 +157,11 @@ export default createStore({
     setTarea({ commit }, id) {
       commit('tarea', id)
     },
-   async updateTarea({ commit }, tarea) {
+   async updateTarea({ commit ,state}, tarea) {
      try{
        //Si en Firebase le pasamos un ID como identificador en párametro (si no lo genera solo) y POST como tipo de llamada.
        //Para editar, se usa path (ver documentación de firebase)
-       const res = await fetch(`https://udemy-api-31a48-default-rtdb.europe-west1.firebasedatabase.app/tareas/${tarea.id}.json`,{
+       const res = await fetch(`https://udemy-api-31a48-default-rtdb.europe-west1.firebasedatabase.app/tareas/${state.user.localId}/${tarea.id}.json?auth=${state.user.idToken}`,{
          method: 'PATCH',
          mode:'cors',
          headers:{

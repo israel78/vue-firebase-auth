@@ -1,0 +1,67 @@
+<template>
+  <h1 class="my-5">Registro de Usuarios</h1>
+  <form @submit.prevent="procesarFormulario">
+    <input
+        type="email"
+        placeholder="email"
+        class="form-control my-2"
+        v-model.trim="email"
+    >
+    <input
+        type="password"
+        placeholder="password"
+        class="form-control my-2"
+        v-model.trim="pass1"
+    >
+    <input
+        type="password"
+        placeholder="password"
+        class="form-control my-2"
+        v-model.trim="pass2"
+    >
+    <button
+        type="submit"
+        class="btn btn-primary"
+        :disabled="bloquear"
+        >Registrar</button>
+  </form>
+</template>
+<script>
+import {mapActions} from "vuex";
+export default {
+  name: "Registro",
+  data() {
+    return {
+      email: 'admin@gmail.com',
+      pass1: '123456',
+      pass2: '123456'
+    }
+  },
+  computed: {
+    bloquear() {
+      if (this.email.trim() === "")
+        return true;
+      if (!this.email.includes("@"))
+        return true;
+      if (this.pass1.length<6)
+        return true
+      return this.pass1 !== this.pass2;
+
+    }
+
+  },
+  methods:{
+    ...mapActions(['registrarUsuario']),
+    procesarFormulario(){
+      this.registrarUsuario({email:this.email,password:this.pass1})
+      this.email=''
+      this.pass1='123456'
+      this.pass2='123456'
+    }
+  }
+}
+</script>
+
+<style>
+
+</style>

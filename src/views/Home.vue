@@ -33,7 +33,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['setTareas']),
+    ...mapActions(['setTareas','cargarDatosFirebase']),
     procesarFormulario(){
       console.log(this.tarea)
       if(this.tarea.nombre.trim() === ""){
@@ -59,6 +59,8 @@ export default {
       }
     }
   },
-
+  created(){
+    this.cargarDatosFirebase()
+  }
 }
 </script>
