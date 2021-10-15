@@ -58,9 +58,6 @@ export default {
         numero: 0
       }
     }
-  },
-  created(){
-    this.cargarDatosFirebase()
   }
 }
 </script>

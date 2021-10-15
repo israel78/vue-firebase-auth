@@ -42,7 +42,11 @@ export default createStore({
     }
   },
   actions: {
-
+    cerrarSesion({commit}){
+      commit('setUser',null)
+      router.push('/login')
+      localStorage.removeItem('usuario')
+    },
     async loginUsuario({commit},user){
       try{
         const apiKey = 'AIzaSyBqkwFxGxqe4cP1W9Y8-sxJhzCjJ4yCvEs'
@@ -65,6 +69,7 @@ export default createStore({
           return
         }
         commit('setUser',dataDB)
+        localStorage.setItem('usuario',JSON.stringify(dataDB))
         router.push("/")
       }catch (e) {
         console.log(e)
@@ -92,11 +97,23 @@ export default createStore({
          return
        }
        commit('setUser',user)
+       localStorage.setItem('usuario',JSON.stringify(dataDB))
+       router.push("/")
      }catch (e) {
        console.log(e)
      }
     },
     async cargarDatosFirebase({commit,state}){
+
+      //Esta llamada esta en el app.vue por lo que siempre se ejecuta aunque no haya usuario logado.
+      //Para evitar fallos, hay que validar y si existe en sesíon se guarda en la variable usada en la aplicación
+      if(localStorage.getItem('usuario')){
+         commit('setUser',JSON.parse(localStorage.getItem('usuario')))
+      } else{
+        //Si no hay usuario de sesion, se manda un null por que no existe usuario registrado y asi el enrutado
+        //redirige al login al tener las rutas protegidas
+        return commit('setUser',null)
+      }
       try{
         const res = await fetch(`https://udemy-api-31a48-default-rtdb.europe-west1.firebasedatabase.app/tareas//${state.user.localId}.json?auth=${state.user.idToken}`,{
           method: 'GET',
@@ -179,5 +196,11 @@ export default createStore({
     }
   },
   modules: {
+  },
+  getters:{
+    usuarioAutenticado(state){
+      //Doble exclamación por que si el objeto es null debuelve un false
+      return !!state.user
+    }
   }
 })

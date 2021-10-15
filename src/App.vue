@@ -14,6 +14,9 @@
     },
     methods:{
       ...mapActions(['cargarDatosFirebase'])
+    },
+    created(){
+      this.cargarDatosFirebase()
     }
 
   }

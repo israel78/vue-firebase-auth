@@ -32,9 +32,9 @@ export default {
   name: "Registro",
   data() {
     return {
-      email: 'admin@gmail.com',
-      pass1: '123456',
-      pass2: '123456'
+      email: '',
+      pass1: '',
+      pass2: ''
     }
   },
   computed: {
