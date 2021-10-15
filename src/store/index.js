@@ -11,9 +11,23 @@ export default createStore({
       estado: '',
       numero: 0
     },
-    user:null
+    user:null,
+    error:{
+      tipo:null,
+      mensaje:''
+    }
   },
   mutations: {
+    setError(state,payload){
+      if (payload === null)
+        this.state.error = {tipo:"email",mensaje:'' }
+      if(payload==="EMAIL_NOT_FOUND"){
+        this.state.error = {tipo:"email",mensaje:'Email no registrado' }
+      }
+      if(payload==="INVALID_PASSWORD"){
+        this.state.error = {tipo:"password",mensaje:'contraseña no válida' }
+      }
+    },
     loginUser(state,payload){
       this.state.user = payload
     },
@@ -66,9 +80,11 @@ export default createStore({
         console.log(dataDB)
         if (dataDB.error){
           console.log(dataDB.error)
+          commit('setError',dataDB.error.message )
           return
         }
-        commit('setUser',dataDB)
+        commit('setError',dataDB.error.message )
+        commit('setUser',null)
         localStorage.setItem('usuario',JSON.stringify(dataDB))
         router.push("/")
       }catch (e) {
@@ -201,6 +217,9 @@ export default createStore({
     usuarioAutenticado(state){
       //Doble exclamación por que si el objeto es null debuelve un false
       return !!state.user
+    },
+    getError(state){
+      return state.error
     }
   }
 })
